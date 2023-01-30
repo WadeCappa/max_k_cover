@@ -27,12 +27,12 @@ private:
     {
     protected:
         std::vector<unsigned int>* vertex_subset;
+        std::unordered_map<int, std::unordered_set<int>*>* allSets;
 
     public:
         virtual int findNextInfluential(
             std::vector<unsigned int>& seedSet,
             int current_K_index,
-            std::unordered_map<int, std::unordered_set<int>>& selection_sets,
             ripples::Bitmask<int>& covered,
             int theta
         ) = 0;
@@ -46,7 +46,6 @@ private:
         std::priority_queue<std::pair<int, std::unordered_set<int>*>, 
                 std::vector<std::pair<int, std::unordered_set<int>*>>, 
                 CompareMaxHeap<int>>* pq;
-        std::unordered_map<int, std::unordered_set<int>*>* allSets;
 
     public:
         LazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
@@ -89,7 +88,6 @@ private:
         int findNextInfluential(
             std::vector<unsigned int>& seedSet,
             int current_K_index,
-            std::unordered_map<int, std::unordered_set<int>>& selection_sets,
             ripples::Bitmask<int>& covered,
             int theta
         ) override
@@ -139,7 +137,7 @@ private:
             else {
                 this->pq->push(l);  
                 return findNextInfluential(
-                    seedSet, current_K_index, selection_sets, covered, theta
+                    seedSet, current_K_index, covered, theta
                 );
             }
 
@@ -150,7 +148,20 @@ private:
     class NaiveGreedy : public NextMostInfluentialFinder
     {
     public:
-        NaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data) {}
+        NaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data) 
+        {
+            this->allSets = new std::unordered_map<int, std::unordered_set<int>*>();
+
+            for (const auto & l : data)
+            {
+                this->allSets->insert({ l.first, new std::unordered_set<int>(l.second.begin(), l.second.end()) });
+            }
+        }
+
+        ~NaiveGreedy()
+        {
+            delete this->allSets;
+        }
 
         NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) override
         {
@@ -161,7 +172,6 @@ private:
         int findNextInfluential(
             std::vector<unsigned int>& seedSet,
             int current_K_index,
-            std::unordered_map<int, std::unordered_set<int>>& selection_sets,
             ripples::Bitmask<int>& covered,
             int theta
         ) override
@@ -172,15 +182,15 @@ private:
 
             for ( const auto & vertex : *this->vertex_subset )
             {
-                if (selection_sets[vertex].size() > max)
+                if (this->allSets->at(vertex)->size() > max)
                 {
-                    max = selection_sets[vertex].size();
+                    max = this->allSets->at(vertex)->size();
                     max_key = vertex;
                 }
             }
             seedSet[current_K_index] = max_key;
 
-            for (int e: selection_sets[max_key]) {
+            for (int e: *(this->allSets->at(max_key))) {
                 if (!covered.get(e)) {
                     covered.set(e);
                     totalCovered++;
@@ -189,26 +199,26 @@ private:
 
             # pragma omp parellel for
             for( int i = 0; i < this->vertex_subset->size(); i++ ) {
-                if (selection_sets.find(this->vertex_subset->at(i)) != selection_sets.end()) 
+                if (this->allSets->find(this->vertex_subset->at(i)) != this->allSets->end()) 
                 {
-                    auto RRRSets = selection_sets[this->vertex_subset->at(i)];
+                    auto RRRSets = this->allSets->at(this->vertex_subset->at(i));
 
                     std::set<int> temp;
                     if (this->vertex_subset->at(i) != max_key) {
-                        for (int e: RRRSets) {
+                        for (int e: *RRRSets) {
                             if (covered.get(e)) {
                                 temp.insert(e);
                             }
                         }
                         for (int e: temp) {
-                            selection_sets[this->vertex_subset->at(i)].erase(e); 
+                            this->allSets->at(this->vertex_subset->at(i))->erase(e); 
                         }
 
                     }
                 }
             }
 
-            selection_sets.erase(max_key);
+            this->allSets->erase(max_key);
             return totalCovered;
         }
     };
@@ -310,7 +320,7 @@ public:
             }
 
             uniqueCounted += finder->findNextInfluential(
-                res, currentSeed, data, covered, theta
+                res, currentSeed, covered, theta
             );
         }
         
