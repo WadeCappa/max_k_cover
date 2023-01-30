@@ -31,7 +31,7 @@ private:
     public:
         virtual int findNextInfluential(
             std::vector<unsigned int>& seedSet,
-            int& current_K_index,
+            int current_K_index,
             std::unordered_map<int, std::unordered_set<int>>& selection_sets,
             ripples::Bitmask<int>& covered,
             int theta
@@ -68,6 +68,11 @@ private:
                 data_vec.push_back(std::make_pair(v, this->allSets->at(v)));
             }
 
+            if (this->pq != nullptr)
+            {
+                delete pq;
+            }
+
             this->pq = new std::priority_queue<std::pair<int, std::unordered_set<int>*>,
                                 std::vector<std::pair<int, std::unordered_set<int>*>>,
                                 decltype(cmp)> (data_vec.begin(), data_vec.end());
@@ -77,12 +82,13 @@ private:
 
         ~LazyGreedy()
         {
+            delete allSets;
             delete pq;
         }
 
         int findNextInfluential(
             std::vector<unsigned int>& seedSet,
-            int& current_K_index,
+            int current_K_index,
             std::unordered_map<int, std::unordered_set<int>>& selection_sets,
             ripples::Bitmask<int>& covered,
             int theta
@@ -117,7 +123,7 @@ private:
             
             // if marginal of l is better than r's utility, l is the current best     
             if (marginal_gain >= r.second->size()) {
-                seedSet[current_K_index++] = l.first;
+                seedSet[current_K_index] = l.first;
                 
                 for (int e : *(l.second)) {
                     if (e > theta || e < 0) {
@@ -132,6 +138,9 @@ private:
             // else push l's marginal into the heap 
             else {
                 this->pq->push(l);  
+                return findNextInfluential(
+                    seedSet, current_K_index, selection_sets, covered, theta
+                );
             }
 
             return totalCovered;
@@ -151,7 +160,7 @@ private:
 
         int findNextInfluential(
             std::vector<unsigned int>& seedSet,
-            int& current_K_index,
+            int current_K_index,
             std::unordered_map<int, std::unordered_set<int>>& selection_sets,
             ripples::Bitmask<int>& covered,
             int theta
@@ -169,7 +178,7 @@ private:
                     max_key = vertex;
                 }
             }
-            seedSet[current_K_index++] = max_key;
+            seedSet[current_K_index] = max_key;
 
             for (int e: selection_sets[max_key]) {
                 if (!covered.get(e)) {
@@ -289,8 +298,7 @@ public:
         this->finder->setSubset(current_subset);
 
         int uniqueCounted = 0;
-        int currentSeed = 0;
-        while (currentSeed < k)
+        for (int currentSeed = 0; currentSeed < k; currentSeed++)
         {
             if (this->usingStochastic)
             {
@@ -306,6 +314,8 @@ public:
             );
         }
         
+        delete all_vertices;
+        delete current_subset;
         return std::make_pair(res, uniqueCounted);
     }
 };
