@@ -321,7 +321,7 @@ int main() {
     srand(time(NULL));
 
     MaxKCoverEngine engine(k);
-    engine.useNaiveGreedy(data);
+    engine.useNaiveGreedy(data)->useStochasticGreedy(epsilon);
     std::pair<std::vector<unsigned int>, int> res = engine.run_max_k_cover(data, theta);
 
     for (const auto & i : res.first) {

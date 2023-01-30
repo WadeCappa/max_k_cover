@@ -17,9 +17,9 @@ private:
     template <typename idTy>
     struct CompareMaxHeap {
 
-        bool operator()(const std::pair<idTy, std::unordered_set<idTy>> a,
-                        const std::pair<idTy, std::unordered_set<idTy>> b) {
-            return a.second.size() < b.second.size();
+        bool operator()(const std::pair<idTy, std::unordered_set<idTy>*> a,
+                        const std::pair<idTy, std::unordered_set<idTy>*> b) {
+            return a.second->size() < b.second->size();
         }
     };
 
@@ -43,32 +43,40 @@ private:
     class LazyGreedy : public NextMostInfluentialFinder
     {
     private:
-        std::priority_queue<std::pair<int, std::unordered_set<int>>,
-                std::vector<std::pair<int, std::unordered_set<int>>>,
+        std::priority_queue<std::pair<int, std::unordered_set<int>*>, 
+                std::vector<std::pair<int, std::unordered_set<int>*>>, 
                 CompareMaxHeap<int>>* pq;
-
-        std::unordered_set<unsigned int>* set_vertex_subset;
+        std::unordered_map<int, std::unordered_set<int>*>* allSets;
 
     public:
         LazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
         {
-            CompareMaxHeap<int> cmp;
-            std::vector<std::pair<int, std::unordered_set<int>>> data_vec = std::vector<std::pair<int, std::unordered_set<int>>>(data.begin(), data.end());
-            this->pq = new std::priority_queue<std::pair<int, std::unordered_set<int>>,
-                                std::vector<std::pair<int, std::unordered_set<int>>>,
-                                decltype(cmp)> (data_vec.begin(), data_vec.end());
+            this->allSets = new std::unordered_map<int, std::unordered_set<int>*>();
+
+            for (const auto & l : data)
+            {
+                this->allSets->insert({ l.first, new std::unordered_set<int>(l.second.begin(), l.second.end()) });
+            }
         }
 
         NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) override
         {
-            this->vertex_subset = subset_of_selection_sets;
-            this->set_vertex_subset = new std::unordered_set<unsigned int>(subset_of_selection_sets->begin(), subset_of_selection_sets->end());
+            CompareMaxHeap<int> cmp;
+            std::vector<std::pair<int, std::unordered_set<int>*>> data_vec;
+            for (const auto & v : *(subset_of_selection_sets))
+            {
+                data_vec.push_back(std::make_pair(v, this->allSets->at(v)));
+            }
+
+            this->pq = new std::priority_queue<std::pair<int, std::unordered_set<int>*>,
+                                std::vector<std::pair<int, std::unordered_set<int>*>>,
+                                decltype(cmp)> (data_vec.begin(), data_vec.end());
+
             return this;
         }
 
         ~LazyGreedy()
         {
-            delete set_vertex_subset;
             delete pq;
         }
 
@@ -81,26 +89,13 @@ private:
         ) override
         {
             int totalCovered;
-            auto l = this->pq->top();
-            std::vector<std::pair<int, std::unordered_set<int>>> replacements;
-            
-            while (this->set_vertex_subset->find(l.first) == this->set_vertex_subset->end())
-            {
-                replacements.push_back(this->pq->top());
-                this->pq->pop();
-                l = this->pq->top();
-            }
+            std::pair<int, std::unordered_set<int>*> l = this->pq->top();
             this->pq->pop();       
-
-            for (const auto & p : replacements)
-            {
-                this->pq->push(p);
-            }
 
             std::unordered_set<int> temp;
 
             // remove RR IDs from l that are already covered. 
-            for (int e: l.second) {
+            for (int e: *(l.second)) {
                 if (e > theta || e < 0) {
                     std::cout << "e is greater than theta, e = " << e << " , theta = " << theta << std::endl;
                 }
@@ -111,20 +106,20 @@ private:
 
             for (const int e : temp) 
             {
-                l.second.erase(e); 
+                l.second->erase(e); 
             }
             
             // calculate marginal gain
-            auto marginal_gain = l.second.size();
+            auto marginal_gain = l.second->size();
 
             // calculate utiluty of next best
             auto r = this->pq->top(); 
             
             // if marginal of l is better than r's utility, l is the current best     
-            if (marginal_gain >= r.second.size()) {
+            if (marginal_gain >= r.second->size()) {
                 seedSet[current_K_index++] = l.first;
                 
-                for (int e : l.second) {
+                for (int e : *(l.second)) {
                     if (e > theta || e < 0) {
                         std::cout << "e is greater than theta, e = " << e << " , theta = " << theta << std::endl;
                     }
