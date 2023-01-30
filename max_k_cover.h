@@ -45,7 +45,7 @@ private:
     private:
         std::priority_queue<std::pair<int, std::unordered_set<int>*>, 
                 std::vector<std::pair<int, std::unordered_set<int>*>>, 
-                CompareMaxHeap<int>>* pq;
+                CompareMaxHeap<int>>* pq = 0;
 
     public:
         LazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
@@ -68,10 +68,7 @@ private:
                 data_vec.push_back(std::make_pair(v, this->allSets->at(v)));
             }
 
-            if (this->pq != nullptr)
-            {
-                delete pq;
-            }
+            delete pq;
 
             this->pq = new std::priority_queue<std::pair<int, std::unordered_set<int>*>,
                                 std::vector<std::pair<int, std::unordered_set<int>*>>,
@@ -157,6 +154,8 @@ private:
             {
                 this->allSets->insert({ l.first, new std::unordered_set<int>(l.second.begin(), l.second.end()) });
             }
+
+            std::cout << "size of allsets for naive greedy: " << this->allSets->size() << std::endl;
         }
 
         ~NaiveGreedy()
@@ -184,7 +183,7 @@ private:
 
             for ( const auto & vertex : *this->vertex_subset )
             {
-                if (this->allSets->at(vertex)->size() > max)
+                if (this->allSets->find(vertex) != this->allSets->end() && this->allSets->at(vertex)->size() > max)
                 {
                     max = this->allSets->at(vertex)->size();
                     max_key = vertex;
@@ -228,8 +227,8 @@ private:
     int k;
     double epsilon;
     bool usingStochastic = false;
-    std::vector<unsigned int>* vertices;
-    NextMostInfluentialFinder* finder;
+    std::vector<unsigned int>* vertices = 0;
+    NextMostInfluentialFinder* finder = 0;
 
     void generateSubset(std::vector<unsigned int>* vertices, size_t size, std::vector<unsigned int> seedSet)
     {
@@ -267,11 +266,8 @@ public:
     };
 
     ~MaxKCoverEngine() {
-        if (this->finder != nullptr)
-            delete this->finder;
-
-        if (this->vertices != nullptr)
-            delete this->vertices;
+        delete this->finder;
+        delete this->vertices;
     }
 
     MaxKCoverEngine* useStochasticGreedy(double e)
@@ -298,7 +294,7 @@ public:
         return this;
     }
 
-    std::pair<std::vector<unsigned int>, int> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>> data, int theta)
+    std::pair<std::vector<unsigned int>, int> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>>& data, int& theta)
     {
         std::vector<unsigned int> res(this->k, -1);
         ripples::Bitmask<int> covered(theta);
