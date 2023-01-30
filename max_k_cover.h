@@ -58,6 +58,7 @@ private:
             }
         }
 
+        // TODO: change interface to all_vertices vector and the subset size, this way you can build the priority queue directly.
         NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) override
         {
             CompareMaxHeap<int> cmp;
@@ -160,6 +161,7 @@ private:
 
         ~NaiveGreedy()
         {
+            // TODO: Delete all unorderd_sets within this->allsets
             delete this->allSets;
         }
 
@@ -296,7 +298,6 @@ public:
         return this;
     }
 
-    // TODO: This should not mutate the data object. It should make a copy so that the original sets can be sent to the global node. Otherwise the algorithm breaks.
     std::pair<std::vector<unsigned int>, int> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>> data, int theta)
     {
         std::vector<unsigned int> res(this->k, -1);
