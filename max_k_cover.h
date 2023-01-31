@@ -14,14 +14,6 @@
 class MaxKCoverEngine 
 {
 private:
-    template <typename idTy>
-    struct CompareMaxHeap {
-
-        bool operator()(const std::pair<idTy, std::unordered_set<idTy>*> a,
-                        const std::pair<idTy, std::unordered_set<idTy>*> b) {
-            return a.second->size() < b.second->size();
-        }
-    };
 
     class NextMostInfluentialFinder
     { 
@@ -51,6 +43,15 @@ private:
     class LazyGreedy : public NextMostInfluentialFinder
     {
     private:
+        template <typename idTy>
+        struct CompareMaxHeap {
+
+            bool operator()(const std::pair<idTy, std::unordered_set<idTy>*> a,
+                            const std::pair<idTy, std::unordered_set<idTy>*> b) {
+                return a.second->size() < b.second->size();
+            }
+        };
+
         std::priority_queue<std::pair<int, std::unordered_set<int>*>, 
                 std::vector<std::pair<int, std::unordered_set<int>*>>, 
                 CompareMaxHeap<int>>* pq = 0;
@@ -226,7 +227,7 @@ private:
 
             #pragma omp parallel 
             {
-                # pragma omp for 
+                # pragma omp for schedule(static)
                 for( int i = 0; i < this->subset_size; i++ ) {
                     if (this->allSets->find(this->vertex_subset->at(i)) != this->allSets->end()) 
                     {

@@ -22,10 +22,10 @@ double runTrial(MaxKCoverEngine e, std::unordered_map<int, std::unordered_set<in
     std::pair<std::vector<unsigned int>, int> res = e.run_max_k_cover(sets, theta);
     t.endTimer();
 
-    // for (const auto & i : res.first) {
-    //     std::cout << i << ", ";
-    // }
-    // std::cout << std::endl;
+    for (const auto & i : res.first) {
+        std::cout << i << ", ";
+    }
+    std::cout << std::endl;
 
     return t.resolveTimer();
 }
