@@ -79,8 +79,8 @@ private:
 
         ~LazyGreedy()
         {
-            delete allSets;
-            delete pq;
+            // delete allSets;
+            // delete pq;
         }
 
         int findNextInfluential(
@@ -161,7 +161,7 @@ private:
         ~NaiveGreedy()
         {
             // TODO: Delete all unorderd_sets within this->allsets
-            delete this->allSets;
+            // delete this->allSets;
         }
 
         NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) override
@@ -198,23 +198,26 @@ private:
                 }
             }
 
-            # pragma omp parellel for
-            for( int i = 0; i < this->vertex_subset->size(); i++ ) {
-                if (this->allSets->find(this->vertex_subset->at(i)) != this->allSets->end()) 
-                {
-                    auto RRRSets = this->allSets->at(this->vertex_subset->at(i));
+            #pragma omp parallel 
+            {
+                # pragma omp for 
+                for( int i = 0; i < this->vertex_subset->size(); i++ ) {
+                    if (this->allSets->find(this->vertex_subset->at(i)) != this->allSets->end()) 
+                    {
+                        auto RRRSets = this->allSets->at(this->vertex_subset->at(i));
 
-                    std::set<int> temp;
-                    if (this->vertex_subset->at(i) != max_key) {
-                        for (int e: *RRRSets) {
-                            if (covered.get(e)) {
-                                temp.insert(e);
+                        std::set<int> temp;
+                        if (this->vertex_subset->at(i) != max_key) {
+                            for (int e: *RRRSets) {
+                                if (covered.get(e)) {
+                                    temp.insert(e);
+                                }
                             }
-                        }
-                        for (int e: temp) {
-                            this->allSets->at(this->vertex_subset->at(i))->erase(e); 
-                        }
+                            for (int e: temp) {
+                                this->allSets->at(this->vertex_subset->at(i))->erase(e); 
+                            }
 
+                        }
                     }
                 }
             }
@@ -266,8 +269,8 @@ public:
     };
 
     ~MaxKCoverEngine() {
-        delete this->finder;
-        delete this->vertices;
+        // delete this->finder;
+        // delete this->vertices;
     }
 
     MaxKCoverEngine* useStochasticGreedy(double e)
@@ -294,6 +297,7 @@ public:
         return this;
     }
 
+    // TODO: Resolve memory leak created by this entire class. You need to deallocate all the memory you're allocating.
     std::pair<std::vector<unsigned int>, int> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>>& data, int& theta)
     {
         std::vector<unsigned int> res(this->k, -1);

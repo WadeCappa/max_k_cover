@@ -45,4 +45,4 @@ def cleanData(filename):
 
     writeData(sets, "sets.txt")
 
-cleanData("coverageGithub.txt")
+cleanData("coverage.txt")
