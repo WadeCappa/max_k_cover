@@ -3,18 +3,15 @@
 # include <unordered_map>
 # include <unordered_set>
 # include <vector>
+#include <cstdlib>
+# include <ctime>
+# include <cstdlib>
 
 # include "max_k_cover.h"
 # include "old_cover.h"
 
-# include <ctime>
-# include <cstdlib>
-
 # include "generateData.h"
 # include "timer.h"
-
-int k = 100; 
-double epsilon = 0.13;
 
 
 double runTrial(MaxKCoverEngine e, std::unordered_map<int, std::unordered_set<int>> sets, int theta)
@@ -34,8 +31,11 @@ double runTrial(MaxKCoverEngine e, std::unordered_map<int, std::unordered_set<in
 }
 
 
-int main() {
+int main(int argc, char** argv) {
     srand(time(NULL));
+
+    int k = atoi(argv[1]);
+    double epsilon = std::atof(argv[2]);
 
     std::unordered_map<int, std::unordered_set<int>> data;
     int theta = DataExtractor::extract("sets.txt", data);
