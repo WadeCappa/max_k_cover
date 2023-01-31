@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
     std::string filename = argv[3];
 
     std::unordered_map<int, std::unordered_set<int>> data;
-    int theta = DataExtractor::extract(filename, data);
+    int theta = DataExtractor::extract(filename, data) + 1;
 
     std::cout << "number of vertices: " << data.size() << std::endl;
     std::cout << "theta: " << theta << std::endl;

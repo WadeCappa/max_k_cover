@@ -1,13 +1,15 @@
 import random
 
-def keepLooping():
-    if random.randint(0, 20) == 5:
+def keepLooping(exitChance):
+    if random.randint(0, exitChance) == 1:
         return False
     return True
 
 def writeData(sets, outfile):
     with open(outfile, "w") as output:
         for i, s in enumerate(sets):
+            if i % 100000 == 0:
+                print(f"writing vertex {i/len(sets)}...")
             if s == set():
                 output.write(f"")
             else: 
@@ -23,18 +25,20 @@ def writeForDirectInput(sets, outfile):
                 output.write("{" + f"{i}, " + f"{s}" + "},")
             output.write('\n')
 
-def newData():
+def newData(n, theta, outfile, exitChance):
     sets = []
-    for i in range(300):
+    for i in range(n):
+        if i % 100000 == 0:
+            print(f"generating vertex {i/n}...")
         newSet = set()
-        while keepLooping():
-            newSet.add(random.randint(0, 1000))
+        while keepLooping(exitChance):
+            newSet.add(random.randint(0, theta))
         sets.append(newSet)
     
-    writeForDirectInput(sets, "sets.txt")
+    writeData(sets, outfile)
 
 
-def cleanData(filename):
+def cleanData(filename, outfile):
     sets = []
 
     with open(filename, "r") as input:
@@ -43,6 +47,7 @@ def cleanData(filename):
             newline.pop()
             sets.append(set([ int(x) for x in newline ]))
 
-    writeData(sets, "sets.txt")
+    writeData(sets, outfile)
 
-cleanData("coverage.txt")
+# cleanData("coverage.txt", "sets.txt")
+newData(500000, 100000, "sets.txt", 50)
