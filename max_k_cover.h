@@ -24,20 +24,28 @@ private:
     };
 
     class NextMostInfluentialFinder
-    {
+    { 
     protected:
         std::vector<unsigned int>* vertex_subset;
         std::unordered_map<int, std::unordered_set<int>*>* allSets;
+        size_t subset_size;
 
     public:
-        virtual int findNextInfluential(
+        virtual int findNextInfluential (
             std::vector<unsigned int>& seedSet,
             int current_K_index,
             ripples::Bitmask<int>& covered,
             int theta
         ) = 0;
 
-        virtual NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) = 0;
+        virtual NextMostInfluentialFinder* setSubset (
+            std::vector<unsigned int>* subset_of_selection_sets,
+            size_t subset_size
+        ) = 0;
+
+        virtual NextMostInfluentialFinder* reloadSubset (
+            size_t new_size
+        ) = 0;
     };
 
     class LazyGreedy : public NextMostInfluentialFinder
@@ -58,29 +66,24 @@ private:
             }
         }
 
-        // TODO: change interface to all_vertices vector and the subset size, this way you can build the priority queue directly.
-        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) override
-        {
-            CompareMaxHeap<int> cmp;
-            std::vector<std::pair<int, std::unordered_set<int>*>> data_vec;
-            for (const auto & v : *(subset_of_selection_sets))
-            {
-                data_vec.push_back(std::make_pair(v, this->allSets->at(v)));
-            }
-
-            delete pq;
-
-            this->pq = new std::priority_queue<std::pair<int, std::unordered_set<int>*>,
-                                std::vector<std::pair<int, std::unordered_set<int>*>>,
-                                decltype(cmp)> (data_vec.begin(), data_vec.end());
-
-            return this;
-        }
-
         ~LazyGreedy()
         {
             // delete allSets;
             // delete pq;
+        }
+
+        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
+        {
+            generateQueue(subset_of_selection_sets, subset_size);
+            this->vertex_subset = subset_of_selection_sets;
+            return this;
+        }
+
+        NextMostInfluentialFinder* reloadSubset (size_t new_size) override 
+        {
+            this->subset_size = new_size;
+            generateQueue(this->vertex_subset, new_size);
+            return this;
         }
 
         int findNextInfluential(
@@ -141,6 +144,23 @@ private:
 
             return totalCovered;
         }
+
+        private:
+        void generateQueue(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size)
+        {
+            CompareMaxHeap<int> cmp;
+            std::vector<std::pair<int, std::unordered_set<int>*>> data_vec(subset_size);
+            for (int i = 0; i < subset_size; i++)
+            {
+                data_vec[i] = std::make_pair(subset_of_selection_sets->at(i), this->allSets->at(subset_of_selection_sets->at(i)));
+            }
+
+            delete pq;
+
+            this->pq = new std::priority_queue<std::pair<int, std::unordered_set<int>*>,
+                                std::vector<std::pair<int, std::unordered_set<int>*>>,
+                                decltype(cmp)> (data_vec.begin(), data_vec.end());
+        }
     };
 
     class NaiveGreedy : public NextMostInfluentialFinder
@@ -154,8 +174,6 @@ private:
             {
                 this->allSets->insert({ l.first, new std::unordered_set<int>(l.second.begin(), l.second.end()) });
             }
-
-            std::cout << "size of allsets for naive greedy: " << this->allSets->size() << std::endl;
         }
 
         ~NaiveGreedy()
@@ -164,11 +182,18 @@ private:
             // delete this->allSets;
         }
 
-        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets) override
+        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
         {
             this->vertex_subset = subset_of_selection_sets;
+            this->subset_size = subset_size;
             return this;
         } 
+
+        NextMostInfluentialFinder* reloadSubset (size_t new_size) override 
+        {
+            this->subset_size = new_size;
+            return this;
+        }
 
         int findNextInfluential(
             std::vector<unsigned int>& seedSet,
@@ -181,8 +206,9 @@ private:
             int max_key = -1;
             int totalCovered = 0;
 
-            for ( const auto & vertex : *this->vertex_subset )
+            for ( int i = 0; i < this->subset_size; i++ )
             {
+                int vertex = this->vertex_subset->at(i);
                 if (this->allSets->find(vertex) != this->allSets->end() && this->allSets->at(vertex)->size() > max)
                 {
                     max = this->allSets->at(vertex)->size();
@@ -201,7 +227,7 @@ private:
             #pragma omp parallel 
             {
                 # pragma omp for 
-                for( int i = 0; i < this->vertex_subset->size(); i++ ) {
+                for( int i = 0; i < this->subset_size; i++ ) {
                     if (this->allSets->find(this->vertex_subset->at(i)) != this->allSets->end()) 
                     {
                         auto RRRSets = this->allSets->at(this->vertex_subset->at(i));
@@ -233,7 +259,7 @@ private:
     std::vector<unsigned int>* vertices = 0;
     NextMostInfluentialFinder* finder = 0;
 
-    void generateSubset(std::vector<unsigned int>* vertices, size_t size, std::vector<unsigned int> seedSet)
+    void reorganizeVertexSet(std::vector<unsigned int>* vertices, size_t size, std::vector<unsigned int> seedSet)
     {
         // for i from 0 to n−2 do
         //     j ← random integer such that i ≤ j < n
@@ -305,8 +331,7 @@ public:
 
         std::vector<unsigned int>* all_vertices = new std::vector<unsigned int>();  
         for (const auto & l : data) { all_vertices->push_back(l.first); }
-        std::vector<unsigned int>* current_subset = new std::vector<unsigned int>(all_vertices->begin(), all_vertices->end());
-        this->finder->setSubset(current_subset);
+        this->finder->setSubset(all_vertices, all_vertices->size());
 
         int uniqueCounted = 0;
         for (int currentSeed = 0; currentSeed < k; currentSeed++)
@@ -314,10 +339,8 @@ public:
             if (this->usingStochastic)
             {
                 size_t subset_size = this->getSubsetSize(data.size(), this->k, this->epsilon);
-                generateSubset(all_vertices, subset_size, res);
-                delete current_subset;
-                current_subset = new std::vector<unsigned int>(all_vertices->begin(), all_vertices->begin() + subset_size);
-                this->finder->setSubset(current_subset);
+                reorganizeVertexSet(all_vertices, subset_size, res);
+                this->finder->reloadSubset(subset_size);
             }
 
             uniqueCounted += finder->findNextInfluential(
@@ -326,7 +349,6 @@ public:
         }
         
         delete all_vertices;
-        delete current_subset;
         return std::make_pair(res, uniqueCounted);
     }
 };
