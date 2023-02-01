@@ -49,5 +49,5 @@ def cleanData(filename, outfile):
 
     writeData(sets, outfile)
 
-# cleanData("coverage.txt", "sets.txt")
-newData(500000, 100000, "sets.txt", 50)
+cleanData("coverage.txt", "realWorldSets.txt")
+# newData(500000, 100000, "randomSets.txt", 50)
