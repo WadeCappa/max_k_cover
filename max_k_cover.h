@@ -23,6 +23,16 @@ private:
         size_t subset_size;
 
     public:
+        virtual ~NextMostInfluentialFinder()
+        {
+            // std::cout << "deallocating base class..." << std::endl;
+            for (const auto & l : *(this->allSets))
+            {
+                delete l.second;
+            }
+            delete this->allSets;
+        }
+
         virtual int findNextInfluential (
             std::vector<unsigned int>& seedSet,
             int current_K_index,
@@ -50,8 +60,7 @@ private:
             }
         };
 
-        CompareMaxHeap<int> cmp;
-            
+        CompareMaxHeap<int> cmp;            
         std::vector<std::pair<int, std::unordered_set<int>*>>* heap;
 
     public:
@@ -67,8 +76,8 @@ private:
 
         ~LazyGreedy()
         {
-            // delete allSets;
-            // delete pq;
+            // std::cout << "deallocating Lazy-Greedy finder ..." << std::endl;
+            delete heap;
         }
 
         NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
@@ -174,8 +183,7 @@ private:
 
         ~NaiveGreedy()
         {
-            // TODO: Delete all unorderd_sets within this->allsets
-            // delete this->allSets;
+            // std::cout << "deallocating Naive-Greedy finder ..." << std::endl;
         }
 
         NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
@@ -251,7 +259,6 @@ private:
     int k;
     double epsilon;
     bool usingStochastic = false;
-    std::vector<unsigned int>* vertices = 0;
     NextMostInfluentialFinder* finder = 0;
 
     void reorganizeVertexSet(std::vector<unsigned int>* vertices, size_t size, std::vector<unsigned int> seedSet)
@@ -290,8 +297,7 @@ public:
     };
 
     ~MaxKCoverEngine() {
-        // delete this->finder;
-        // delete this->vertices;
+        delete this->finder;
     }
 
     MaxKCoverEngine* useStochasticGreedy(double e)
@@ -303,22 +309,18 @@ public:
 
     MaxKCoverEngine* useLazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
     {
-        finder = new LazyGreedy(data);
+        this->finder = new LazyGreedy(data);
 
         return this;
     }
 
     MaxKCoverEngine* useNaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
     {
-        this->vertices = new std::vector<unsigned int>();
-        for( const auto& t : data ) { this->vertices->push_back(t.first); }
-
         this->finder = new NaiveGreedy(data);
 
         return this;
     }
 
-    // TODO: Resolve memory leak created by this entire class. You need to deallocate all the memory you're allocating.
     std::pair<std::vector<unsigned int>, int> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>>& data, int& theta)
     {
         std::vector<unsigned int> res(this->k, -1);

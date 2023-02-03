@@ -31,7 +31,7 @@ def newData(n, theta, outfile, exitChance):
         if i % 100000 == 0:
             print(f"generating vertex {i/n}...")
         newSet = set()
-        while keepLooping(exitChance):
+        for i in range(exitChance):
             newSet.add(random.randint(0, theta))
         sets.append(newSet)
     
@@ -49,5 +49,5 @@ def cleanData(filename, outfile):
 
     writeData(sets, outfile)
 
-cleanData("coverage.txt", "realWorldSets.txt")
-# newData(500000, 100000, "randomSets.txt", 50)
+cleanData("data/coverage.txt", "data/realWorldSets.txt")
+# newData(64*64, 999999, "data/syntheticGlobal.txt", 1000)
