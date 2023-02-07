@@ -14,7 +14,7 @@
 # include "timer.h"
 
 
-double runTrial(MaxKCoverEngine& e, std::unordered_map<int, std::unordered_set<int>> sets, int theta)
+std::pair<std::vector<unsigned int>, int> runTrial(MaxKCoverEngine& e, std::unordered_map<int, std::unordered_set<int>> sets, int theta)
 {
     Timer t;
 
@@ -22,44 +22,46 @@ double runTrial(MaxKCoverEngine& e, std::unordered_map<int, std::unordered_set<i
     std::pair<std::vector<unsigned int>, int> res = e.run_max_k_cover(sets, theta);
     t.endTimer();
 
-    // for (const auto & i : res.first) {
-    //     std::cout << i << ", ";
-    // }
-    // std::cout << std::endl;
+    for (const auto & i : res.first) {
+        std::cout << i << ", ";
+    }
+    std::cout << std::endl;
 
-    return t.resolveTimer();
+    std::cout << t.resolveTimer() << std::endl;
+
+    return res;
 }
 
-void runNaive(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k)
+std::pair<std::vector<unsigned int>, int> runNaive(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k)
 {
     std::cout << "Naive Greedy runtime: ";
     MaxKCoverEngine naiveEngine(k);
     naiveEngine.useNaiveGreedy(data);
-    std::cout << runTrial(naiveEngine, data, theta) << " ms" << std::endl;
+    return runTrial(naiveEngine, data, theta);
 }
 
-void runLazy(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k)
+std::pair<std::vector<unsigned int>, int> runLazy(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k)
 {
     std::cout << "Lazy Greedy runtime: ";
     MaxKCoverEngine lazyEngine(k);
     lazyEngine.useLazyGreedy(data);
-    std::cout << runTrial(lazyEngine, data, theta) << " ms" << std::endl;
+    return runTrial(lazyEngine, data, theta);
 }
 
-void runNaiveStochastic(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k, double epsilon)
+std::pair<std::vector<unsigned int>, int> runNaiveStochastic(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k, double epsilon)
 {
     std::cout << "Stochastic Naive Greedy runtime ";
     MaxKCoverEngine stochasticNaiveEngine(k);
     stochasticNaiveEngine.useNaiveGreedy(data)->useStochasticGreedy(epsilon);
-    std::cout << runTrial(stochasticNaiveEngine, data, theta) << " ms" << std::endl;
+    return runTrial(stochasticNaiveEngine, data, theta);
 }
 
-void runLazyStochastic(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k, double epsilon)
+std::pair<std::vector<unsigned int>, int> runLazyStochastic(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k, double epsilon)
 {
     std::cout << "Stochastic Lazy Greedy runtime: ";
     MaxKCoverEngine stochasticLazyEngine(k);
     stochasticLazyEngine.useLazyGreedy(data)->useStochasticGreedy(epsilon);
-    std::cout << runTrial(stochasticLazyEngine, data, theta) << " ms" << std::endl;
+    return runTrial(stochasticLazyEngine, data, theta);
 }
 
 int main(int argc, char** argv) {
@@ -77,8 +79,27 @@ int main(int argc, char** argv) {
     std::cout << "k: " << k << std::endl;
     std::cout << "epsilon: " << epsilon << std::endl;
 
-    runNaive(data, theta, k);
-    runLazy(data, theta, k);
-    runNaiveStochastic(data, theta, k, epsilon);
-    runLazyStochastic(data, theta, k, epsilon);
+    // std::cout << "data size:" << data.size() << std::endl;
+
+    // runNaive(data, theta, k);
+    // std::cout << "data size:" << data.size() << std::endl;
+
+    // runLazy(data, theta, k);
+    // std::cout << "data size:" << data.size() << std::endl;
+
+    // runNaiveStochastic(data, theta, k, epsilon);
+    // std::cout << "data size:" << data.size() << std::endl;
+
+    // runLazyStochastic(data, theta, k, epsilon);
+    // std::cout << "data size:" << data.size() << std::endl;
+
+    MaxKCoverEngine engine(k);
+    std::pair<std::vector<unsigned int>, ssize_t> res = engine.useStochasticGreedy(epsilon)->useLazyGreedy(data)->run_max_k_cover(data, theta);
+
+    // for (const auto & i : res.first) {
+    //     std::cout << i << ", ";
+    // }
+    // std::cout << std::endl;
+
+    std::cout << res.second << std::endl;
 }

@@ -33,7 +33,7 @@ private:
             delete this->allSets;
         }
 
-        virtual int findNextInfluential (
+        virtual ssize_t findNextInfluential (
             std::vector<unsigned int>& seedSet,
             int current_K_index,
             ripples::Bitmask<int>& covered,
@@ -96,14 +96,14 @@ private:
             return this;
         }
 
-        int findNextInfluential(
+        ssize_t findNextInfluential(
             std::vector<unsigned int>& seedSet,
             int current_K_index,
             ripples::Bitmask<int>& covered,
             int theta
         ) override
         {
-            int totalCovered;
+            ssize_t totalCovered = 0;
             std::pair<int, std::unordered_set<int>*> l = this->heap->front();
             std::pop_heap(this->heap->begin(), this->heap->end(), this->cmp);
 
@@ -198,7 +198,7 @@ private:
             return this;
         }
 
-        int findNextInfluential(
+        ssize_t findNextInfluential(
             std::vector<unsigned int>& seedSet,
             int current_K_index,
             ripples::Bitmask<int>& covered,
@@ -207,7 +207,7 @@ private:
         {
             int max = 0;
             int max_key = -1;
-            int totalCovered = 0;
+            ssize_t totalCovered = 0;
 
             for ( int i = 0; i < this->subset_size; i++ )
             {
@@ -321,7 +321,7 @@ public:
         return this;
     }
 
-    std::pair<std::vector<unsigned int>, int> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>>& data, int& theta)
+    std::pair<std::vector<unsigned int>, ssize_t> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>>& data, ssize_t theta)
     {
         std::vector<unsigned int> res(this->k, -1);
         ripples::Bitmask<int> covered(theta);
@@ -332,7 +332,7 @@ public:
         for (const auto & l : data) { all_vertices->push_back(l.first); }
         this->finder->setSubset(all_vertices, subset_size);
 
-        int uniqueCounted = 0;
+        ssize_t uniqueCounted = 0;
         for (int currentSeed = 0; currentSeed < k; currentSeed++)
         {
             if (this->usingStochastic)
