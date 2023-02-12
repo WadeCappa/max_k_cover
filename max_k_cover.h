@@ -292,14 +292,13 @@ private:
             ripples::Bitmask<int> localCovered(covered);
             localCovered.notOperation();
 
-
             // check this->bitmaps for the bitmap that has the maximal marginal gain when bitmap[i] & ~covered is used. 
             #pragma omp parallel 
             {
                 int local_best_score = best_score;
                 int local_max_key = max_key;
 
-                # pragma omp for nowait
+                # pragma omp for 
                 for ( int i = 0; i < this->subset_size; i++ )
                 {
                     int vertex = this->vertex_subset->at(i);

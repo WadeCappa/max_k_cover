@@ -89,7 +89,7 @@ class Bitmask {
 
   Bitmask &andOperation(Bitmask& bitmap) {
     assert(bitmap.size() == this->size());
-    for (int i = 0; i < this->bytes() / sizeof(BaseTy); i++) {
+    for (int i = 0; i < this->data_size_; i++) {
       this->data_[i] &= bitmap.data()[i];
     }
     return *this;
@@ -97,14 +97,14 @@ class Bitmask {
 
   Bitmask &orOperation(Bitmask& bitmap) {
     assert(bitmap.size() == this->size());
-    for (int i = 0; i < this->bytes() / sizeof(BaseTy); i++) {
+    for (int i = 0; i < this->data_size_; i++) {
       this->data_[i] |= bitmap.data()[i];
     }
     return *this;
   }
 
   Bitmask &notOperation() {
-    for (int i = 0; i < this->bytes() / sizeof(BaseTy); i++) {
+    for (int i = 0; i < this->data_size_; i++) {
       this->data()[i] = ~this->data()[i];
     }
     return *this;
