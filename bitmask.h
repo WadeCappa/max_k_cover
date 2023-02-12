@@ -46,6 +46,7 @@
 #include <cstddef>
 #include <memory>
 #include <string.h>
+#include <assert.h>
 
 namespace ripples {
 template <typename BaseTy>
@@ -84,6 +85,29 @@ class Bitmask {
   bool get(size_t i) const {
     BaseTy m = 1 << (i % (8 * sizeof(BaseTy)));
     return data_[i / (8 * sizeof(BaseTy))] & m;
+  }
+
+  Bitmask &andOperation(Bitmask& bitmap) {
+    assert(bitmap.size() == this->size());
+    for (int i = 0; i < this->bytes() / sizeof(BaseTy); i++) {
+      this->data_[i] &= bitmap.data()[i];
+    }
+    return *this;
+  }
+
+  Bitmask &orOperation(Bitmask& bitmap) {
+    assert(bitmap.size() == this->size());
+    for (int i = 0; i < this->bytes() / sizeof(BaseTy); i++) {
+      this->data_[i] |= bitmap.data()[i];
+    }
+    return *this;
+  }
+
+  Bitmask &notOperation() {
+    for (int i = 0; i < this->bytes() / sizeof(BaseTy); i++) {
+      this->data()[i] = ~this->data()[i];
+    }
+    return *this;
   }
 
   size_t popcount() const {

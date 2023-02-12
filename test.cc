@@ -27,41 +27,9 @@ std::pair<std::vector<unsigned int>, int> runTrial(MaxKCoverEngine& e, std::unor
     }
     std::cout << std::endl;
 
-    std::cout << t.resolveTimer() << std::endl;
+    std::cout << t.resolveTimer() << " ms" << std::endl;
 
     return res;
-}
-
-std::pair<std::vector<unsigned int>, int> runNaive(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k)
-{
-    std::cout << "Naive Greedy runtime: ";
-    MaxKCoverEngine naiveEngine(k);
-    naiveEngine.useNaiveGreedy(data);
-    return runTrial(naiveEngine, data, theta);
-}
-
-std::pair<std::vector<unsigned int>, int> runLazy(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k)
-{
-    std::cout << "Lazy Greedy runtime: ";
-    MaxKCoverEngine lazyEngine(k);
-    lazyEngine.useLazyGreedy(data);
-    return runTrial(lazyEngine, data, theta);
-}
-
-std::pair<std::vector<unsigned int>, int> runNaiveStochastic(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k, double epsilon)
-{
-    std::cout << "Stochastic Naive Greedy runtime ";
-    MaxKCoverEngine stochasticNaiveEngine(k);
-    stochasticNaiveEngine.useNaiveGreedy(data)->useStochasticGreedy(epsilon);
-    return runTrial(stochasticNaiveEngine, data, theta);
-}
-
-std::pair<std::vector<unsigned int>, int> runLazyStochastic(std::unordered_map<int, std::unordered_set<int>> data, int theta, int k, double epsilon)
-{
-    std::cout << "Stochastic Lazy Greedy runtime: ";
-    MaxKCoverEngine stochasticLazyEngine(k);
-    stochasticLazyEngine.useLazyGreedy(data)->useStochasticGreedy(epsilon);
-    return runTrial(stochasticLazyEngine, data, theta);
 }
 
 int main(int argc, char** argv) {
@@ -72,34 +40,34 @@ int main(int argc, char** argv) {
     std::string filename = argv[3];
 
     std::unordered_map<int, std::unordered_set<int>> data;
-    int theta = DataExtractor::extract(filename, data) + 1;
+    std::pair<int, int> meta_data = DataExtractor::extract(filename, data);
+
+    int theta = meta_data.first;
+    int totalRRRSets = meta_data.second;
 
     std::cout << "number of vertices: " << data.size() << std::endl;
+    std::cout << "number of sets over all vertex sets: " << totalRRRSets << std::endl;
     std::cout << "theta: " << theta << std::endl;
     std::cout << "k: " << k << std::endl;
     std::cout << "epsilon: " << epsilon << std::endl;
 
-    // std::cout << "data size:" << data.size() << std::endl;
+    MaxKCoverEngine naiveGreedy(k);
+    naiveGreedy.useNaiveGreedy(data);
+    runTrial(naiveGreedy, data, theta);
 
-    // runNaive(data, theta, k);
-    // std::cout << "data size:" << data.size() << std::endl;
+    // MaxKCoverEngine lazyGreedy(k);
+    // lazyGreedy.useLazyGreedy(data);
+    // runTrial(lazyGreedy, data, theta);
 
-    // runLazy(data, theta, k);
-    // std::cout << "data size:" << data.size() << std::endl;
+    // MaxKCoverEngine stochasticNaive(k);
+    // stochasticNaive.useStochasticGreedy(epsilon)->useNaiveGreedy(data);
+    // runTrial(stochasticNaive, data, theta);
 
-    // runNaiveStochastic(data, theta, k, epsilon);
-    // std::cout << "data size:" << data.size() << std::endl;
+    // MaxKCoverEngine stochasticLazy(k);
+    // stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
+    // runTrial(stochasticLazy, data, theta);
 
-    // runLazyStochastic(data, theta, k, epsilon);
-    // std::cout << "data size:" << data.size() << std::endl;
-
-    MaxKCoverEngine engine(k);
-    std::pair<std::vector<unsigned int>, ssize_t> res = engine.useStochasticGreedy(epsilon)->useLazyGreedy(data)->run_max_k_cover(data, theta);
-
-    // for (const auto & i : res.first) {
-    //     std::cout << i << ", ";
-    // }
-    // std::cout << std::endl;
-
-    std::cout << res.second << std::endl;
+    MaxKCoverEngine bitmapNaive(k);
+    bitmapNaive.useNaiveBitmapGreedy(data, theta);
+    runTrial(bitmapNaive, data, theta);
 }

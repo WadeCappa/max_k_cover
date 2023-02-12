@@ -8,10 +8,11 @@
 class DataExtractor
 {
     private:
-    static int insertIntegers(std::string line, std::unordered_set<int>& set)
+    static std::pair<int,int> insertIntegers(std::string line, std::unordered_set<int>& set)
     {
         std::stringstream ss(line);
         int max = 0;
+        int total_sets = 0;
     
         std::string temp;
         int found;
@@ -23,29 +24,33 @@ class DataExtractor
             {
                 set.insert(found);
                 max = std::max(found, max);
+                total_sets++;
             }
     
             temp = "";
         }
 
-        return max;
+        return std::make_pair(max, total_sets);
     }
 
     public:
-    static int extract(std::string filename, std::unordered_map<int, std::unordered_set<int>>& data)
+    static std::pair<int,int> extract(std::string filename, std::unordered_map<int, std::unordered_set<int>>& data)
     {
         std::ifstream infile(filename);
         std::string line;
 
         int vertexID = 0;
         int theta = 0;
+        int total_sets = 0;
 
         while (std::getline(infile, line))
         {
-            theta = std::max(DataExtractor::insertIntegers(line, data[vertexID++]), theta);
+            std::pair<int, int> res = DataExtractor::insertIntegers(line, data[vertexID++]);
+            theta = std::max(res.first, theta);
+            total_sets += res.second;
         }
 
         infile.close();
-        return theta;
+        return std::make_pair(theta + 1, total_sets);
     }
 };  
