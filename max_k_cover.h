@@ -241,21 +241,20 @@ private:
         }
     };
 
-    template <typename A>
     class NaiveBitMapGreedy : public NextMostInfluentialFinder
     {
     private:
-        std::unordered_map<int, ripples::Bitmask<A>*>* bitmaps = 0;
+        std::unordered_map<int, ripples::Bitmask<int>*>* bitmaps = 0;
 
     public:
         NaiveBitMapGreedy(std::unordered_map<int, std::unordered_set<int>>& data, int theta) 
         {
-            this->bitmaps = new std::unordered_map<int, ripples::Bitmask<A>*>();
+            this->bitmaps = new std::unordered_map<int, ripples::Bitmask<int>*>();
             this->allSets = new std::unordered_map<int, std::unordered_set<int>*>();
 
             for (const auto & l : data)
             {
-                ripples::Bitmask<A>* newBitMask = new ripples::Bitmask<A>(theta);
+                ripples::Bitmask<int>* newBitMask = new ripples::Bitmask<int>(theta);
                 for (const auto & r : l.second)
                 {
                     newBitMask->set(r);
@@ -286,35 +285,46 @@ private:
             int theta
         ) override
         {
-            int max = -1;
+            int best_score = -1;
             int max_key = -1;
             ssize_t totalCovered = 0;
 
             ripples::Bitmask<int> localCovered(covered);
             localCovered.notOperation();
 
+
             // check this->bitmaps for the bitmap that has the maximal marginal gain when bitmap[i] & ~covered is used. 
-            for ( int i = 0; i < this->subset_size; i++ )
+            #pragma omp parallel 
             {
-                int vertex = this->vertex_subset->at(i);
-                if (this->bitmaps->find(vertex) != this->bitmaps->end())
+                int local_best_score = best_score;
+                int local_max_key = max_key;
+
+                # pragma omp for nowait
+                for ( int i = 0; i < this->subset_size; i++ )
                 {
-                    ripples::Bitmask<int> working(localCovered);
-                    working.andOperation(*(this->bitmaps->at(vertex)));
-                    size_t popcount = working.popcount();
-                    if ((int)popcount > max) {
-                        max = popcount;
-                        max_key = vertex;
+                    int vertex = this->vertex_subset->at(i);
+                    if (this->bitmaps->find(vertex) != this->bitmaps->end())
+                    {
+                        ripples::Bitmask<int> working(localCovered);
+                        working.andOperation(*(this->bitmaps->at(vertex)));
+                        size_t popcount = working.popcount();
+                        if ((int)popcount > local_best_score) {
+                            local_best_score = popcount;
+                            local_max_key = vertex;
+                        }
+                    }
+                }
+
+                #pragma omp critical 
+                {
+                    if (local_best_score > best_score) {
+                        best_score = local_best_score;
+                        max_key = local_max_key;
                     }
                 }
             }
 
             // update covered
-            if (max_key == -1) {
-                std::cout << "broken" << std::endl;
-                std::cout << this->subset_size << std::endl;
-                throw __EXCEPTION__;
-            }
             covered.orOperation(*(this->bitmaps->at(max_key)));
 
             this->bitmaps->erase(max_key);
@@ -389,7 +399,7 @@ public:
 
     MaxKCoverEngine* useNaiveBitmapGreedy(std::unordered_map<int, std::unordered_set<int>>& data, int theta)
     {
-        this->finder = new NaiveBitMapGreedy<int>(data, theta);
+        this->finder = new NaiveBitMapGreedy(data, theta);
 
         return this;
     }
