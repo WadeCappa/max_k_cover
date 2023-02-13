@@ -48,6 +48,10 @@
 #include <string.h>
 #include <assert.h>
 
+#include <bit>
+#include <bitset>
+#include <cstdint>
+
 namespace ripples {
 template <typename BaseTy>
 class Bitmask {
@@ -113,7 +117,7 @@ class Bitmask {
   size_t popcount() const {
     size_t count = 0;
     for (size_t i = 0; i < data_size_; ++i) {
-      count += __builtin_popcount(data_[i]);
+      count += std::__popcount<BaseTy>(data_[i]);
     }
     return count;
   }

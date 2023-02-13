@@ -61,6 +61,16 @@ private:
         CompareMaxHeap<int> cmp;            
         std::vector<std::pair<int, std::unordered_set<int>*>>* heap;
 
+        void generateQueue(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size)
+        {
+            for (int i = 0; i < subset_size; i++)
+            {
+                this->heap->at(i) = std::make_pair(subset_of_selection_sets->at(i), this->allSets->at(subset_of_selection_sets->at(i)));
+            }
+
+            std::make_heap(this->heap->begin(), this->heap->end(), this->cmp);
+        }
+
     public:
         LazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
         {
@@ -147,17 +157,6 @@ private:
 
                 return findNextInfluential( covered, theta );
             }
-        }
-
-        private:
-        void generateQueue(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size)
-        {
-            for (int i = 0; i < subset_size; i++)
-            {
-                this->heap->at(i) = std::make_pair(subset_of_selection_sets->at(i), this->allSets->at(subset_of_selection_sets->at(i)));
-            }
-
-            std::make_heap(this->heap->begin(), this->heap->end(), this->cmp);
         }
     };
 

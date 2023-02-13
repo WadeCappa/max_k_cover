@@ -49,5 +49,5 @@ def cleanData(filename, outfile):
 
     writeData(sets, outfile)
 
-# cleanData("data/coverage.txt", "data/realWorldSets.txt")
-newData(64*64, 999, "data/syntheticGlobal.txt", 10)
+cleanData("data/coverage.txt", "data/realWorldSets.txt")
+# newData(64*64, 999, "data/syntheticGlobal.txt", 10)

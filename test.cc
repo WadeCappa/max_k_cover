@@ -22,10 +22,12 @@ std::pair<std::vector<unsigned int>, int> runTrial(MaxKCoverEngine& e, std::unor
     std::pair<std::vector<unsigned int>, int> res = e.run_max_k_cover(sets, theta);
     t.endTimer();
 
-    // for (const auto & i : res.first) {
-    //     std::cout << i << ", ";
-    // }
-    // std::cout << std::endl;
+    for (const auto & i : res.first) {
+        std::cout << i << ", ";
+    }
+    std::cout << std::endl;
+
+    std::cout << res.second << std::endl;
 
     std::cout << t.resolveTimer() << " ms" << std::endl;
 
@@ -51,23 +53,53 @@ int main(int argc, char** argv) {
     std::cout << "k: " << k << std::endl;
     std::cout << "epsilon: " << epsilon << std::endl;
 
-    MaxKCoverEngine naiveGreedy(k);
-    naiveGreedy.useNaiveGreedy(data);
-    runTrial(naiveGreedy, data, theta);
+    // MaxKCoverEngine naiveGreedy(k);
+    // naiveGreedy.useNaiveGreedy(data);
+    // runTrial(naiveGreedy, data, theta);
+
+    // OldEngine oldEngine;    
+    // Timer t;
+
+    // t.startTimer();
+    // auto res = oldEngine.max_cover(data, k, theta);
+    // t.endTimer();
+
+    // for (const auto & i : res.first) {
+    //     std::cout << i << ", ";
+    // }
+    // std::cout << std::endl;
+    
+    // std::cout << res.second << std::endl;
+    // std::cout << t.resolveTimer() << " ms" << std::endl;
 
     MaxKCoverEngine lazyGreedy(k);
     lazyGreedy.useLazyGreedy(data);
     runTrial(lazyGreedy, data, theta);
 
-    MaxKCoverEngine stochasticNaive(k);
-    stochasticNaive.useStochasticGreedy(epsilon)->useNaiveGreedy(data);
-    runTrial(stochasticNaive, data, theta);
+    OldEngine lazyEngine;    
+    Timer t2;
 
-    MaxKCoverEngine stochasticLazy(k);
-    stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
-    runTrial(stochasticLazy, data, theta);
+    t2.startTimer();
+    auto res2 = lazyEngine.max_cover_lazy_greedy(data, k, theta);
+    t2.endTimer();
 
-    MaxKCoverEngine bitmapNaive(k);
-    bitmapNaive.useNaiveBitmapGreedy(data, theta);
-    runTrial(bitmapNaive, data, theta);
+    for (const auto & i : res2.first) {
+        std::cout << i << ", ";
+    }
+    std::cout << std::endl;
+    
+    std::cout << res2.second << std::endl;
+    std::cout << t2.resolveTimer() << " ms" << std::endl;
+
+    // MaxKCoverEngine stochasticNaive(k);
+    // stochasticNaive.useStochasticGreedy(epsilon)->useNaiveGreedy(data);
+    // runTrial(stochasticNaive, data, theta);
+
+    // MaxKCoverEngine stochasticLazy(k);
+    // stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
+    // runTrial(stochasticLazy, data, theta);
+
+    // MaxKCoverEngine bitmapNaive(k);
+    // bitmapNaive.useNaiveBitmapGreedy(data, theta);
+    // runTrial(bitmapNaive, data, theta);
 }
