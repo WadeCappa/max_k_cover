@@ -63,6 +63,11 @@ private:
 
         void generateQueue(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size)
         {
+            for (int i = 0; i < subset_size - this->heap->size(); i++) 
+            {
+                this->heap->push_back(std::make_pair(0,(std::unordered_set<int>*)0));
+            }
+
             for (int i = 0; i < subset_size; i++)
             {
                 this->heap->at(i) = std::make_pair(subset_of_selection_sets->at(i), this->allSets->at(subset_of_selection_sets->at(i)));
@@ -112,6 +117,7 @@ private:
             ssize_t totalCovered = 0;
             std::pair<int, std::unordered_set<int>*> l = this->heap->front();
             std::pop_heap(this->heap->begin(), this->heap->end(), this->cmp);
+            this->heap->pop_back();
 
             std::unordered_set<int> temp;
 

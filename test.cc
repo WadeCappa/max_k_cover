@@ -76,28 +76,28 @@ int main(int argc, char** argv) {
     lazyGreedy.useLazyGreedy(data);
     runTrial(lazyGreedy, data, theta);
 
-    OldEngine lazyEngine;    
-    Timer t2;
+    // OldEngine lazyEngine;    
+    // Timer t2;
 
-    t2.startTimer();
-    auto res2 = lazyEngine.max_cover_lazy_greedy(data, k, theta);
-    t2.endTimer();
+    // t2.startTimer();
+    // auto res2 = lazyEngine.max_cover_lazy_greedy(data, k, theta);
+    // t2.endTimer();
 
-    for (const auto & i : res2.first) {
-        std::cout << i << ", ";
-    }
-    std::cout << std::endl;
+    // for (const auto & i : res2.first) {
+    //     std::cout << i << ", ";
+    // }
+    // std::cout << std::endl;
     
-    std::cout << res2.second << std::endl;
-    std::cout << t2.resolveTimer() << " ms" << std::endl;
+    // std::cout << res2.second << std::endl;
+    // std::cout << t2.resolveTimer() << " ms" << std::endl;
 
     // MaxKCoverEngine stochasticNaive(k);
     // stochasticNaive.useStochasticGreedy(epsilon)->useNaiveGreedy(data);
     // runTrial(stochasticNaive, data, theta);
 
-    // MaxKCoverEngine stochasticLazy(k);
-    // stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
-    // runTrial(stochasticLazy, data, theta);
+    MaxKCoverEngine stochasticLazy(k);
+    stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
+    runTrial(stochasticLazy, data, theta);
 
     // MaxKCoverEngine bitmapNaive(k);
     // bitmapNaive.useNaiveBitmapGreedy(data, theta);
