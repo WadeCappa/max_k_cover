@@ -38,12 +38,12 @@ private:
             int theta
         ) = 0;
 
-        virtual NextMostInfluentialFinder* setSubset (
+        virtual NextMostInfluentialFinder& setSubset (
             std::vector<unsigned int>* subset_of_selection_sets,
             size_t subset_size
         ) = 0;
 
-        virtual NextMostInfluentialFinder* reloadSubset () = 0;
+        virtual NextMostInfluentialFinder& reloadSubset () = 0;
     };
 
     class LazyGreedy : public NextMostInfluentialFinder
@@ -93,20 +93,20 @@ private:
             delete heap;
         }
 
-        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
+        NextMostInfluentialFinder& setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
         {
             this->subset_size = subset_size;
             this->heap = new std::vector<std::pair<int, std::unordered_set<int>*>>(this->subset_size);
 
             generateQueue(subset_of_selection_sets, subset_size);
             this->vertex_subset = subset_of_selection_sets;
-            return this;
+            return *this;
         }
 
-        NextMostInfluentialFinder* reloadSubset () override 
+        NextMostInfluentialFinder& reloadSubset () override 
         {
             generateQueue(this->vertex_subset, this->subset_size);
-            return this;
+            return *this;
         }
 
         ssize_t findNextInfluential(
@@ -181,16 +181,16 @@ private:
 
         ~NaiveGreedy(){}
 
-        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
+        NextMostInfluentialFinder& setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
         {
             this->vertex_subset = subset_of_selection_sets;
             this->subset_size = subset_size;
-            return this;
+            return *this;
         } 
 
-        NextMostInfluentialFinder* reloadSubset () override 
+        NextMostInfluentialFinder& reloadSubset () override 
         {
-            return this;
+            return *this;
         }
 
         ssize_t findNextInfluential(
@@ -273,16 +273,16 @@ private:
             delete bitmaps;
         }
 
-        NextMostInfluentialFinder* setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
+        NextMostInfluentialFinder& setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
         {
             this->vertex_subset = subset_of_selection_sets;
             this->subset_size = subset_size;
-            return this;
+            return *this;
         } 
 
-        NextMostInfluentialFinder* reloadSubset () override 
+        NextMostInfluentialFinder& reloadSubset () override 
         {
-            return this;
+            return *this;
         }
 
         ssize_t findNextInfluential(
@@ -380,32 +380,29 @@ public:
         delete this->finder;
     }
 
-    MaxKCoverEngine* useStochasticGreedy(double e)
+    MaxKCoverEngine& useStochasticGreedy(double e)
     {
         this->epsilon = e;
         this->usingStochastic = true;
-        return this;
+        return *this;
     }
 
-    MaxKCoverEngine* useLazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
+    MaxKCoverEngine& useLazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
     {
         this->finder = new LazyGreedy(data);
-
-        return this;
+        return *this;
     }
 
-    MaxKCoverEngine* useNaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
+    MaxKCoverEngine& useNaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
     {
         this->finder = new NaiveGreedy(data);
-
-        return this;
+        return *this;
     }
 
-    MaxKCoverEngine* useNaiveBitmapGreedy(std::unordered_map<int, std::unordered_set<int>>& data, int theta)
+    MaxKCoverEngine& useNaiveBitmapGreedy(std::unordered_map<int, std::unordered_set<int>>& data, int theta)
     {
         this->finder = new NaiveBitMapGreedy(data, theta);
-
-        return this;
+        return *this;
     }
 
 

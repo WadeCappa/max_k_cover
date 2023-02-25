@@ -22,10 +22,10 @@ std::pair<std::vector<unsigned int>, int> runTrial(MaxKCoverEngine& e, std::unor
     std::pair<std::vector<unsigned int>, int> res = e.run_max_k_cover(sets, theta);
     t.endTimer();
 
-    // for (const auto & i : res.first) {
-    //     std::cout << i << ", ";
-    // }
-    // std::cout << std::endl;
+    for (const auto & i : res.first) {
+        std::cout << i << ", ";
+    }
+    std::cout << std::endl;
 
     std::cout << res.second << std::endl;
 
@@ -98,13 +98,13 @@ int main(int argc, char** argv) {
     // stochasticNaive.useStochasticGreedy(epsilon)->useNaiveGreedy(data);
     // runTrial(stochasticNaive, data, theta);
 
-    std::cout << "lazy stochastic" << std::endl;
-    MaxKCoverEngine stochasticLazy(k);
-    stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
-    runTrial(stochasticLazy, data, theta);
+    // std::cout << "lazy stochastic" << std::endl;
+    // MaxKCoverEngine stochasticLazy(k);
+    // stochasticLazy.useStochasticGreedy(epsilon)->useLazyGreedy(data);
+    // runTrial(stochasticLazy, data, theta);
 
-    std::cout << "naive bitmap" << std::endl;
-    MaxKCoverEngine bitmapNaive(k);
-    bitmapNaive.useNaiveBitmapGreedy(data, theta);
-    runTrial(bitmapNaive, data, theta);
+    // std::cout << "naive bitmap" << std::endl;
+    // MaxKCoverEngine bitmapNaive(k);
+    // bitmapNaive.useNaiveBitmapGreedy(data, theta);
+    // runTrial(bitmapNaive, data, theta);
 }

@@ -49,5 +49,21 @@ def cleanData(filename, outfile):
 
     writeData(sets, outfile)
 
-cleanData("data/coverage.txt", "data/realWorldSets.txt")
+def cleanDataDump(filename, outfile):
+    count = 0
+    data = []
+    with open(filename, "r") as input:
+        for line in input:
+            if count % 2 == 0:
+                newline = line.split(',')
+                newline.pop()
+                data.append(set([ int(x) for x in newline ]))
+            count += 1
+
+    writeData(data, outfile)
+
+
+
+
+cleanDataDump("data/output_sampling.txt", "data/output_sampling_cleaned.txt")
 # newData(64*64, 999, "data/syntheticGlobal.txt", 10)

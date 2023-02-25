@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
             results_from_subset_covers[i] = *(new std::vector<int>(res.first.begin(), res.first.end()));
         }
     }
+
     // // verify output if required. 
     // for (int i = 0; i < m; i++) {
     //     std::cout << "process i) ";
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
     }
 
     MaxKCoverEngine gEngine(k);
-    gEngine.useLazyGreedy(global_data);
+    gEngine.useLazyGreedy(global_data)->useStochasticGreedy(epsilon);
     std::pair<std::vector<unsigned int>, int> res = gEngine.run_max_k_cover(global_data, theta);
 
     for (const auto & s : res.first){
