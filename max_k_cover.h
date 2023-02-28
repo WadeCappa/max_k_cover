@@ -58,7 +58,8 @@ private:
             }
         };
 
-        CompareMaxHeap<int> cmp;            
+        CompareMaxHeap<int> cmp;      
+        unsigned int pushes = 0;      
         std::vector<std::pair<int, std::unordered_set<int>*>>* heap;
 
         void generateQueue(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size)
@@ -90,6 +91,7 @@ private:
         ~LazyGreedy()
         {
             // std::cout << "deallocating Lazy-Greedy finder ..." << std::endl;
+            std::cout << this->pushes << std::endl;
             delete heap;
         }
 
@@ -160,6 +162,7 @@ private:
             else {
                 this->heap->push_back(l);
                 std::push_heap(this->heap->begin(), this->heap->end(), this->cmp);
+                this->pushes++;
 
                 return findNextInfluential( covered, theta );
             }
