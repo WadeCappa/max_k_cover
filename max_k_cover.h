@@ -1,7 +1,8 @@
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
 #include <set>
+#include <map>
+#include <set>
+#include <unordered_set>
 #include <mutex>
 #include <iostream>
 #include "bitmask.h"
@@ -19,7 +20,7 @@ private:
     { 
     protected:
         std::vector<unsigned int>* vertex_subset;
-        std::unordered_map<int, std::unordered_set<int>*>* allSets;
+        std::map<int, std::vector<int>*>* allSets;
         size_t subset_size;
 
     public:
@@ -52,21 +53,20 @@ private:
         template <typename idTy>
         struct CompareMaxHeap {
 
-            bool operator()(const std::pair<idTy, std::unordered_set<idTy>*> a,
-                            const std::pair<idTy, std::unordered_set<idTy>*> b) {
+            bool operator()(const std::pair<idTy, std::vector<idTy>*> a,
+                            const std::pair<idTy, std::vector<idTy>*> b) {
                 return a.second->size() < b.second->size();
             }
         };
 
         CompareMaxHeap<int> cmp;      
-        unsigned int pushes = 0;      
-        std::vector<std::pair<int, std::unordered_set<int>*>>* heap;
+        std::vector<std::pair<int, std::vector<int>*>>* heap;
 
         void generateQueue(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size)
         {
             for (int i = 0; i < subset_size - this->heap->size(); i++) 
             {
-                this->heap->push_back(std::make_pair(0,(std::unordered_set<int>*)0));
+                this->heap->push_back(std::make_pair(0,(std::vector<int>*)0));
             }
 
             for (int i = 0; i < subset_size; i++)
@@ -78,27 +78,26 @@ private:
         }
 
     public:
-        LazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
+        LazyGreedy(std::map<int, std::vector<int>>& data)
         {
-            this->allSets = new std::unordered_map<int, std::unordered_set<int>*>();
+            this->allSets = new std::map<int, std::vector<int>*>();
 
             for (const auto & l : data)
             {
-                this->allSets->insert({ l.first, new std::unordered_set<int>(l.second.begin(), l.second.end()) });
+                this->allSets->insert({ l.first, new std::vector<int>(l.second.begin(), l.second.end()) });
             }
         }
 
         ~LazyGreedy()
         {
             // std::cout << "deallocating Lazy-Greedy finder ..." << std::endl;
-            std::cout << this->pushes << std::endl;
             delete heap;
         }
 
         NextMostInfluentialFinder& setSubset(std::vector<unsigned int>* subset_of_selection_sets, size_t subset_size) override
         {
             this->subset_size = subset_size;
-            this->heap = new std::vector<std::pair<int, std::unordered_set<int>*>>(this->subset_size);
+            this->heap = new std::vector<std::pair<int, std::vector<int>*>>(this->subset_size);
 
             generateQueue(subset_of_selection_sets, subset_size);
             this->vertex_subset = subset_of_selection_sets;
@@ -116,27 +115,25 @@ private:
             int theta
         ) override
         {
-            ssize_t totalCovered = 0;
-            std::pair<int, std::unordered_set<int>*> l = this->heap->front();
+            std::pair<int, std::vector<int>*> l = this->heap->front();
             std::pop_heap(this->heap->begin(), this->heap->end(), this->cmp);
             this->heap->pop_back();
 
-            std::unordered_set<int> temp;
+            std::vector<int>* new_set = new std::vector<int>();
 
             // remove RR IDs from l that are already covered. 
             for (int e: *(l.second)) {
-                if (e > theta || e < 0) {
-                    std::cout << "e is greater than theta, e = " << e << " , theta = " << theta << std::endl;
+                if (!(covered.get(e))) {
+                    new_set->push_back(e);
                 }
-                else if (covered.get(e)) {
-                    temp.insert(e);
-                }
-            }            
+            }      
 
-            for (const int e : temp) 
-            {
-                l.second->erase(e); 
-            }
+            // delete l.second;
+            auto old_ptr = this->allSets->at(l.first);
+            this->allSets->at(l.first) = new_set;
+            l.second = new_set;
+
+            delete old_ptr; 
             
             // calculate marginal gain
             auto marginal_gain = l.second->size();
@@ -148,11 +145,7 @@ private:
             if (marginal_gain >= r.second->size()) 
             {               
                 for (int e : *(l.second)) {
-                    if (e > theta || e < 0) {
-                        std::cout << "e is greater than theta, e = " << e << " , theta = " << theta << std::endl;
-                    }
-                    else if (!covered.get(e)) {
-                        totalCovered++;
+                    if (!covered.get(e)) {
                         covered.set(e);
                     }
                 }
@@ -162,7 +155,6 @@ private:
             else {
                 this->heap->push_back(l);
                 std::push_heap(this->heap->begin(), this->heap->end(), this->cmp);
-                this->pushes++;
 
                 return findNextInfluential( covered, theta );
             }
@@ -172,13 +164,13 @@ private:
     class NaiveGreedy : public NextMostInfluentialFinder
     {
     public:
-        NaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data) 
+        NaiveGreedy(std::map<int, std::vector<int>>& data) 
         {
-            this->allSets = new std::unordered_map<int, std::unordered_set<int>*>();
+            this->allSets = new std::map<int, std::vector<int>*>();
 
             for (const auto & l : data)
             {
-                this->allSets->insert({ l.first, new std::unordered_set<int>(l.second.begin(), l.second.end()) });
+                this->allSets->insert({ l.first, new std::vector<int>(l.second.begin(), l.second.end()) });
             }
         }
 
@@ -228,15 +220,15 @@ private:
                     {
                         auto RRRSets = this->allSets->at(this->vertex_subset->at(i));
 
-                        std::set<int> temp;
+                        std::vector<int> temp;
                         if (this->vertex_subset->at(i) != max_key) {
                             for (int e: *RRRSets) {
                                 if (covered.get(e)) {
-                                    temp.insert(e);
+                                    temp.push_back(e);
                                 }
                             }
                             for (int e: temp) {
-                                this->allSets->at(this->vertex_subset->at(i))->erase(e); 
+                                // this->allSets->at(this->vertex_subset->at(i))->erase(e); 
                             }
 
                         }
@@ -252,13 +244,13 @@ private:
     class NaiveBitMapGreedy : public NextMostInfluentialFinder
     {
     private:
-        std::unordered_map<int, ripples::Bitmask<int>*>* bitmaps = 0;
+        std::map<int, ripples::Bitmask<int>*>* bitmaps = 0;
 
     public:
-        NaiveBitMapGreedy(std::unordered_map<int, std::unordered_set<int>>& data, int theta) 
+        NaiveBitMapGreedy(std::map<int, std::vector<int>>& data, int theta) 
         {
-            this->bitmaps = new std::unordered_map<int, ripples::Bitmask<int>*>();
-            this->allSets = new std::unordered_map<int, std::unordered_set<int>*>();
+            this->bitmaps = new std::map<int, ripples::Bitmask<int>*>();
+            this->allSets = new std::map<int, std::vector<int>*>();
 
             for (const auto & l : data)
             {
@@ -390,26 +382,26 @@ public:
         return *this;
     }
 
-    MaxKCoverEngine& useLazyGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
+    MaxKCoverEngine& useLazyGreedy(std::map<int, std::vector<int>>& data)
     {
         this->finder = new LazyGreedy(data);
         return *this;
     }
 
-    MaxKCoverEngine& useNaiveGreedy(std::unordered_map<int, std::unordered_set<int>>& data)
+    MaxKCoverEngine& useNaiveGreedy(std::map<int, std::vector<int>>& data)
     {
         this->finder = new NaiveGreedy(data);
         return *this;
     }
 
-    MaxKCoverEngine& useNaiveBitmapGreedy(std::unordered_map<int, std::unordered_set<int>>& data, int theta)
+    MaxKCoverEngine& useNaiveBitmapGreedy(std::map<int, std::vector<int>>& data, int theta)
     {
         this->finder = new NaiveBitMapGreedy(data, theta);
         return *this;
     }
 
 
-    std::pair<std::vector<unsigned int>, ssize_t> run_max_k_cover(std::unordered_map<int, std::unordered_set<int>>& data, ssize_t theta)
+    std::pair<std::vector<unsigned int>, ssize_t> run_max_k_cover(std::map<int, std::vector<int>>& data, ssize_t theta)
     {
         std::vector<unsigned int> res(this->k, -1);
         ripples::Bitmask<int> covered(theta);
