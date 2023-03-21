@@ -1,6 +1,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <unordered_set>
 #include <mutex>
@@ -20,7 +21,7 @@ private:
     { 
     protected:
         std::vector<unsigned int>* vertex_subset;
-        std::map<int, std::vector<int>*>* allSets;
+        std::unordered_map<int, std::vector<int>*>* allSets;
         size_t subset_size;
 
     public:
@@ -80,7 +81,7 @@ private:
     public:
         LazyGreedy(std::map<int, std::vector<int>>& data)
         {
-            this->allSets = new std::map<int, std::vector<int>*>();
+            this->allSets = new std::unordered_map<int, std::vector<int>*>();
 
             for (const auto & l : data)
             {
@@ -119,22 +120,18 @@ private:
             std::pop_heap(this->heap->begin(), this->heap->end(), this->cmp);
             this->heap->pop_back();
 
-            std::vector<int>* new_set = new std::vector<int>();
+            std::vector<int> new_set;
 
             // remove RR IDs from l that are already covered. 
             for (int e: *(l.second)) {
                 if (!(covered.get(e))) {
-                    new_set->push_back(e);
+                    new_set.push_back(e);
                 }
             }      
 
             // delete l.second;
-            auto old_ptr = this->allSets->at(l.first);
-            this->allSets->at(l.first) = new_set;
-            l.second = new_set;
-
-            delete old_ptr; 
-            
+            *(this->allSets->at(l.first)) = new_set;
+        
             // calculate marginal gain
             auto marginal_gain = l.second->size();
 
@@ -166,7 +163,7 @@ private:
     public:
         NaiveGreedy(std::map<int, std::vector<int>>& data) 
         {
-            this->allSets = new std::map<int, std::vector<int>*>();
+            this->allSets = new std::unordered_map<int, std::vector<int>*>();
 
             for (const auto & l : data)
             {
@@ -244,13 +241,13 @@ private:
     class NaiveBitMapGreedy : public NextMostInfluentialFinder
     {
     private:
-        std::map<int, ripples::Bitmask<int>*>* bitmaps = 0;
+        std::unordered_map<int, ripples::Bitmask<int>*>* bitmaps = 0;
 
     public:
         NaiveBitMapGreedy(std::map<int, std::vector<int>>& data, int theta) 
         {
-            this->bitmaps = new std::map<int, ripples::Bitmask<int>*>();
-            this->allSets = new std::map<int, std::vector<int>*>();
+            this->bitmaps = new std::unordered_map<int, ripples::Bitmask<int>*>();
+            this->allSets = new std::unordered_map<int, std::vector<int>*>();
 
             for (const auto & l : data)
             {
