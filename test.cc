@@ -59,4 +59,9 @@ int main(int argc, char** argv) {
     MaxKCoverEngine lazyGreedy(k);
     lazyGreedy.useLazyGreedy(data);
     runTrial(lazyGreedy, data, theta);
+
+    std::cout << "lazy-stochastic" << std::endl;
+    MaxKCoverEngine stochasticLazyGreedy(k);
+    stochasticLazyGreedy.useLazyGreedy(data).useStochasticGreedy(epsilon);
+    runTrial(stochasticLazyGreedy, data, theta);
 }

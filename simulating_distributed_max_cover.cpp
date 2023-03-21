@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     {
         # pragma omp for 
         for (int i = 0; i < m; i++) {
-            std::unordered_map<int, std::unordered_set<int>> data;
+            std::map<int, std::vector<int>> data;
             auto filter_function = [&vertex_mapping, &i](int index){ return vertex_mapping[index] == i; };
             std::pair<int, int> meta_data = DataExtractor::extract_subset(filename, data, filter_function);
 
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::unordered_map<int, std::unordered_set<int>> global_data;
+    std::map<int, std::vector<int>> global_data;
     auto filter_function = [&allSeeds](int index){ return allSeeds.find(index) != allSeeds.end(); };
     std::pair<int, int> meta_data = DataExtractor::extract_subset(filename, global_data, filter_function);
 
